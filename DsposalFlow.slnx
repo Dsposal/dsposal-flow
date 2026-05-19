@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Dsposal.Flow.Benchmarks\Dsposal.Flow.Benchmarks.csproj" />
+  <Project Path="Dsposal.Flow\Dsposal.Flow.csproj" />
+</Solution>
