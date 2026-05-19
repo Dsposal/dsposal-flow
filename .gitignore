@@ -1,0 +1,11 @@
+bin/
+obj/
+/packages/
+riderModule.iml
+/_ReSharper.Caches/
+
+# Waste Data Flow files (Downlaod from https://www.wastedataflow.org/reports/default.aspx)
+input/
+inputs/
+
+*.DotSettings.user
