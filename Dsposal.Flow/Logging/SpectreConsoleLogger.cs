@@ -1,0 +1,128 @@
+using System.Text.Json;
+using Microsoft.Extensions.Logging;
+using Spectre.Console;
+using Spectre.Console.Json;
+using Spectre.Console.Rendering;
+using Style = Dsposal.Flow.Models.Style;
+
+namespace Dsposal.Flow.Logging;
+
+/// <summary>
+/// A logger that outputs to the console using the <see cref="N:Spectre.Console"/> library.
+/// </summary>
+public class SpectreConsoleLogger : ILogger
+{
+    private sealed class NoopScope : IDisposable
+    {
+        public static readonly NoopScope Instance = new();
+
+        public void Dispose()
+        {
+        }
+    }
+    
+    private readonly string _categoryName;
+
+    private readonly Style _style;
+
+    /// <summary>
+    /// Initialises a new instance of the <see cref="SpectreConsoleLogger"/> class.
+    /// </summary>
+    /// <param name="categoryName">The name of the category the logger is for.</param>
+    /// <param name="style">The logging style that should be used by the logger.</param>
+    public SpectreConsoleLogger(string categoryName, Style style)
+    {
+        _categoryName = categoryName;
+        _style = style;
+    }
+
+    /// <inheritdoc/>
+    public IDisposable BeginScope<TState>(TState state) where TState : notnull => NoopScope.Instance;
+
+    /// <inheritdoc/>
+    public bool IsEnabled(LogLevel logLevel) => logLevel != LogLevel.None;
+
+    /// <inheritdoc/>
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+    {
+        // Check if enabled
+        if (!IsEnabled(logLevel))
+        {
+            return;
+        }
+
+        string levelText = string.Empty;
+        string levelColour = string.Empty;
+        string levelBackground = string.Empty;
+
+        // Set the log level text and colour
+        switch (logLevel)
+        {
+            case LogLevel.Trace:
+                levelText = "Trace";
+                levelColour = "tan";
+                break;
+            case LogLevel.Debug:
+                levelText = "Debug";
+                levelColour = "chartreuse3";
+                break;
+            case LogLevel.Information:
+                levelText = "Info";
+                levelColour = "dodgerblue1";
+                break;
+            case LogLevel.Warning:
+                levelText = "Warn";
+                levelColour = "darkorange";
+                break;
+            case LogLevel.Error:
+                levelText = "Error";
+                levelColour = "red3_1";
+                break;
+            case LogLevel.Critical:
+                levelText = "Fatal";
+                levelColour = "white";
+                levelBackground = " on red3_1";
+                break;
+        }
+
+        // Create the table to hold the time, level and message
+        Table table = new();
+        table.Border(TableBorder.None)
+                .HideHeaders()
+                .AddColumn("Time")
+                .AddColumn("Level")
+                .AddColumn("Message");
+
+        // Add the rows to the table containing the information
+        if (_style == Style.Extended)
+        {
+            table.AddRow($"[grey]{DateTime.Now:HH:mm:ss}[/]",
+                $"[[[bold {levelColour}{levelBackground}]{levelText,-5}[/]]]",
+                $"[bold]{_categoryName.EscapeMarkup()}:[/]");
+
+            switch (state)
+            {
+                case IRenderable renderable:
+                    table.AddRow(new Text(string.Empty), new Text(string.Empty), renderable);
+                    break;
+                default:
+                    table.AddRow(string.Empty, string.Empty, formatter(state, exception));
+                    break;
+            }
+        }
+        else
+        {
+            table.AddRow($"[grey]{DateTime.Now:HH:mm:ss}[/]",
+                $"[[[bold {levelColour}{levelBackground}]{levelText,-5}[/]]]",
+                formatter(state, exception));
+        }
+
+        if (exception != null)
+        {
+            table.AddRow(new Text(string.Empty), new Text(string.Empty), new Text(exception.ToString()));
+        }
+
+        // Render the outer table to the console
+        AnsiConsole.Write(table);
+    }
+}
