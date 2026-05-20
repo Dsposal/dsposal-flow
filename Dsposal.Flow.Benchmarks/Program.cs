@@ -10,6 +10,10 @@ BenchmarkRunner.Run<Benchmarks>();
 //BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args, new DebugInProcessConfig());
 
 [MemoryDiagnoser]
+[MarkdownExporterAttribute.GitHub,
+    MarkdownExporterAttribute.Default,
+    MarkdownExporterAttribute.StackOverflow,
+    PlainExporter]
 public class Benchmarks
 {
     [Params( "inputs/large.xlsx", "inputs/small.xlsx")]
@@ -22,7 +26,7 @@ public class Benchmarks
         ExcelPackage.License.SetNonCommercialPersonal("James");
     }
     
-    [Benchmark]
+    [Benchmark(Baseline = false)]
     public List<NotQ100Data> ReadExcelFile_EPPlus()
     {
         using var package = new ExcelPackage(new FileInfo(Filename));
@@ -64,8 +68,8 @@ public class Benchmarks
         return data;
     }
 
-
-    [Benchmark]
+    // Using closed as baseline since it's what I know
+    [Benchmark(Baseline = true)]
     public List<NotQ100Data> ReadExcelFile_ClosedXML()
     {
         using var workbook = new XLWorkbook(Filename);
@@ -103,7 +107,7 @@ public class Benchmarks
         return data;
     }
 
-    [Benchmark]
+    [Benchmark(Baseline = false)]
     public List<NotQ100Data> ReadExcelFile_Sylvan()
     {
         using ExcelDataReader edr = ExcelDataReader.Create(Filename);
