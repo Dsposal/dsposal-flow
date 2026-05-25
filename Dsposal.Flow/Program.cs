@@ -68,29 +68,21 @@ async Task<int> Run(Options opts)
 
     logger.LogInformation("Starting processing...");
     logger.LogJson(LogLevel.Debug, JsonSerializer.Serialize(opts));
-    // if (logger.IsEnabled(LogLevel.Debug))
-    // {
-    //     AnsiConsole.Write(new JsonText(JsonSerializer.Serialize(opts)));
-    //     AnsiConsole.WriteLine();
-    // }
 
-    var processor = new NotQ100DataProcessor(loggerFactory.CreateLogger<NotQ100DataProcessor>());
-    var results = await processor.ProcessFilesAsync(opts.ExcelFiles);
-
-    logger.LogInformation("Finished processing all files. Total NotQ100 entries: [blue]{ResultsCount}[/]", results.Count);
-
-    // var duplicateEntriesBasedOnRowIdent = results
-    //     .GroupBy(x => x.RowIdent)
-    //     .OrderByDescending(x => x.Count())
-    //     .Take(3)
-    //     .Select(x => x.First());
-    // AnsiConsole.Write(new JsonText(JsonSerializer.Serialize(duplicateEntriesBasedOnRowIdent)));
-    // AnsiConsole.WriteLine();
-    //
-    // var topThree = results.Take(3).ToList();
-    // AnsiConsole.Write(new JsonText(JsonSerializer.Serialize(topThree)));
-    // AnsiConsole.WriteLine();
-
+    var processor = new DataProcessor(loggerFactory.CreateLogger<DataProcessor>());
+    await processor.ProcessFilesAsync(opts.ExcelFiles);
+    
+    // var eaService = new EaService(opts.OutputDir, loggerFactory.CreateLogger<EaService>());
+    // await eaService.FetchPermitDataFromEA(processor.Q100Data);
+    
+    var csvProcessor = new CsvFileService(opts.OutputDir, loggerFactory.CreateLogger<CsvFileService>());
+    await csvProcessor.WriteNormalizedFiles(processor.NotQ100Data, processor.Q100Data);
+ 
+    // var extraCsv = new ExtraCsvFiles(opts.OutputDir, loggerFactory.CreateLogger<ExtraCsvFiles>());
+    // await extraCsv.WriteNormalizedFiles(processor.NotQ100Data, processor.Q100Data);
+    
+    // await eaService.WriteNormalizedFiles(processor.Q100Data);
+    
     return 0;
 }
 
