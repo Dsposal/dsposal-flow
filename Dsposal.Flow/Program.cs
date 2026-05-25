@@ -49,6 +49,16 @@ async Task<int> Run(Options opts)
         b.SetMinimumLevel(opts.LogLevel);
         b.AddSpectreConsole(Style.Extended);
     });
+
+    if (string.IsNullOrEmpty(opts.OutputDir))
+    {
+        opts.OutputDir = Path.Combine(Directory.GetCurrentDirectory(), "output");
+    }
+    
+    if(!Directory.Exists(opts.OutputDir))
+    {
+        Directory.CreateDirectory(opts.OutputDir);
+    }
     
     var logger = loggerFactory.CreateLogger("Dsposal.Flow");
     
