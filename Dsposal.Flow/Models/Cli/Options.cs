@@ -14,6 +14,13 @@ public class Options
         ),
     ]
     public IEnumerable<string> FilesAndDirs { get; set; }
+    
+    [Option('o', "output",
+        Required = false,
+        HelpText = "The directory to write the output files to.",
+        Default = "./output"
+    )]
+    public string OutputDir { get; set; }
 
     [
         Option('l', "log-level",
