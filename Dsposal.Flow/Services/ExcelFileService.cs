@@ -1,7 +1,6 @@
 using Dsposal.Flow.Models.Cli;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
-using XenoAtom.Logging;
 
 namespace Dsposal.Flow.Services;
 
