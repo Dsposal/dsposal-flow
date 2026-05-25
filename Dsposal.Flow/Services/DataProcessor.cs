@@ -1,19 +1,21 @@
 using System.Collections.Concurrent;
+using Dsposal.Flow.Extensions;
 using Dsposal.Flow.Models.WDF;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using Sylvan.Data;
 using Sylvan.Data.Excel;
-using XenoAtom.Logging;
+using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace Dsposal.Flow.Services;
 
-public class NotQ100DataProcessor(ILogger<NotQ100DataProcessor> logger)
+public class DataProcessor(ILogger<DataProcessor> logger)
 {
-    public async Task<ConcurrentBag<NotQ100Data>> ProcessFilesAsync(List<FileInfo> excelFiles)
-    {
-        var results = new ConcurrentBag<NotQ100Data>();
+    public readonly ConcurrentBag<NotQ100Data> NotQ100Data = [];
+    public readonly ConcurrentBag<Q100Data> Q100Data = [];
 
+    public async Task ProcessFilesAsync(List<FileInfo> excelFiles)
+    {
         await AnsiConsole
             .Progress()
             .Columns([
@@ -48,7 +50,7 @@ public class NotQ100DataProcessor(ILogger<NotQ100DataProcessor> logger)
                                 task.MaxValue(edr.RowCount);
                                 task.Value = 0;
 
-                                task.Description($"Processing {edr.WorksheetName ?? "Unknown Sheet"}");
+                                task.Description($"Processing [yellow]{edr.WorksheetName ?? "Unknown Sheet"}[/] in [green]{fileInfo.Name}[/]");
                                 if (string.IsNullOrEmpty(edr.WorksheetName))
                                     continue;
 
@@ -71,8 +73,25 @@ public class NotQ100DataProcessor(ILogger<NotQ100DataProcessor> logger)
                                             string.IsNullOrEmpty(variable.QuestionNumber))
                                             continue;
 
-                                        results.Add(variable);
+                                        NotQ100Data.Add(variable);
                                     }
+                                }else if (edr.WorksheetName.Equals("Q100", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    var data = edr.GetRecords<Q100Data>(new DataBinderOptions
+                                    {
+                                        BindingMode = DataBindingMode.AllProperties
+                                    });
+                                    
+                                    foreach (var variable in data)
+                                    {
+                                        task.Increment(1);
+
+                                        if (string.IsNullOrEmpty(variable.Period))
+                                            continue;
+                                        
+                                        Q100Data.Add(variable);
+                                    }
+                                    
                                 }
                             } while (await edr.NextResultAsync());
 
@@ -92,7 +111,15 @@ public class NotQ100DataProcessor(ILogger<NotQ100DataProcessor> logger)
 
                 await Task.WhenAll(tasks);
             });
-
-        return results;
+        
+        logger.LogInformation("Finished processing all files...");
+        var table = new Table();
+        table.AddColumns("Data type", "Count");
+        table.AddRow("NotQ100Data", NotQ100Data.Count.ToString());
+        table.AddRow("Q100Data", Q100Data.Count.ToString());
+        logger.LogRenderable(LogLevel.Information, table);
     }
+
+    
+    
 }
