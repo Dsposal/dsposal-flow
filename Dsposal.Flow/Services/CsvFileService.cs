@@ -7,8 +7,24 @@ using Sylvan.Data.Csv;
 
 namespace Dsposal.Flow.Services;
 
-public partial class CsvFileService(string outputPath, ILogger<CsvFileService> logger)
+public partial class CsvFileService
 {
+    private readonly string outputPath;
+    private readonly ILogger<CsvFileService> logger;
+    
+    private string NormalizedOutput => Path.Combine(outputPath, "NormalizedTables");
+
+    public CsvFileService(string outputPath, ILogger<CsvFileService> logger)
+    {
+        this.outputPath = outputPath;
+        this.logger = logger;
+        
+        if(!Directory.Exists(NormalizedOutput))
+        {
+            Directory.CreateDirectory(NormalizedOutput);
+        }
+    }
+    
     public async Task WriteNormalizedFiles(ConcurrentBag<NotQ100Data> notQ100Data, ConcurrentBag<Q100Data> q100Data)
     {
         await Task.WhenAll([
