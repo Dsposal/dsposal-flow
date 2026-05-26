@@ -55,10 +55,12 @@ public partial class CsvFileService
         // Period should be the PK here (it's a string so some databases might not like that)
         var periodsUnique = periods1.Union(periods2).DistinctBy(x => x.Period);
 
-        await using CsvDataWriter cdw = CsvDataWriter.Create(Path.Combine(outputPath, "Periods.csv"));
+        await using CsvDataWriter cdw = CsvDataWriter.Create(Path.Combine(NormalizedOutput, "Periods.csv"));
         await cdw.WriteAsync(periodsUnique.AsDataReader());
 
         LogCsvFileCreated("Periods", outputPath);
+        LogCsvFileCreated("Periods", NormalizedOutput);
+    }
     }
 
     private async Task WriteNormalizedFiles(ConcurrentBag<NotQ100Data> data)
@@ -87,10 +89,10 @@ public partial class CsvFileService
             x => new { x.FacilityTypeId, x.FacilityType },
             x => x.FacilityTypeId);
 
-        await using CsvDataWriter cdw = CsvDataWriter.Create(Path.Combine(outputPath, "FacilityTypes.csv"));
+        await using CsvDataWriter cdw = CsvDataWriter.Create(Path.Combine(NormalizedOutput, "FacilityTypes.csv"));
         await cdw.WriteAsync(whatToWrite.AsDataReader());
 
-        LogCsvFileCreated("Facility types", outputPath);
+        LogCsvFileCreated("Facility types", NormalizedOutput);
     }
 
     private async Task WriteWasteStreamTypeFile(ConcurrentBag<Q100Data> data)
@@ -99,10 +101,10 @@ public partial class CsvFileService
             x => new { x.WasteStreamTypeId, x.WasteStreamType },
             x => x.WasteStreamTypeId);
 
-        await using CsvDataWriter cdw = CsvDataWriter.Create(Path.Combine(outputPath, "WasteStreamTypes.csv"));
+        await using CsvDataWriter cdw = CsvDataWriter.Create(Path.Combine(NormalizedOutput, "WasteStreamTypes.csv"));
         await cdw.WriteAsync(whatToWrite.AsDataReader());
 
-        LogCsvFileCreated("Waste stream types", outputPath);
+        LogCsvFileCreated("Waste stream types", NormalizedOutput);
     }
 
     private async Task WriteNationalFacilityNameFile(ConcurrentBag<Q100Data> data)
@@ -151,10 +153,10 @@ public partial class CsvFileService
             },
             x => x.NationalFacilityId);
 
-        await using CsvDataWriter cdw = CsvDataWriter.Create(Path.Combine(outputPath, "NationalFacilities.csv"));
+        await using CsvDataWriter cdw = CsvDataWriter.Create(Path.Combine(NormalizedOutput, "NationalFacilities.csv"));
         await cdw.WriteAsync(whatToWrite.AsDataReader());
 
-        LogCsvFileCreated("National facility names", outputPath);
+        LogCsvFileCreated("National facility names", NormalizedOutput);
     }
 
     private async Task WriteOutputProcessTypeFile(ConcurrentBag<Q100Data> data)
@@ -164,10 +166,10 @@ public partial class CsvFileService
             x => x.OutputProcessTypeId,
             x => x.OutputProcessType != null);
 
-        await using CsvDataWriter cdw = CsvDataWriter.Create(Path.Combine(outputPath, "OutputProcessTypes.csv"));
+        await using CsvDataWriter cdw = CsvDataWriter.Create(Path.Combine(NormalizedOutput, "OutputProcessTypes.csv"));
         await cdw.WriteAsync(whatToWrite.AsDataReader());
 
-        LogCsvFileCreated("Output process types", outputPath);
+        LogCsvFileCreated("Output process types", NormalizedOutput);
     }
 
     private async Task WriteMaterialFile(ConcurrentBag<Q100Data> data)
@@ -176,10 +178,10 @@ public partial class CsvFileService
             x => new { x.MaterialId, x.Material },
             x => x.MaterialId);
 
-        await using CsvDataWriter cdw = CsvDataWriter.Create(Path.Combine(outputPath, "Materials.csv"));
+        await using CsvDataWriter cdw = CsvDataWriter.Create(Path.Combine(NormalizedOutput, "Materials.csv"));
         await cdw.WriteAsync(whatToWrite.AsDataReader());
 
-        LogCsvFileCreated("Materials", outputPath);
+        LogCsvFileCreated("Materials", NormalizedOutput);
     }
 
     private async Task WriteUsageFile(ConcurrentBag<Q100Data> data)
@@ -188,10 +190,10 @@ public partial class CsvFileService
             x => new { x.UsageId, x.Usage },
             x => x.UsageId);
 
-        await using CsvDataWriter cdw = CsvDataWriter.Create(Path.Combine(outputPath, "Usages.csv"));
+        await using CsvDataWriter cdw = CsvDataWriter.Create(Path.Combine(NormalizedOutput, "Usages.csv"));
         await cdw.WriteAsync(whatToWrite.AsDataReader());
 
-        LogCsvFileCreated("Usages", outputPath);
+        LogCsvFileCreated("Usages", NormalizedOutput);
     }
 
     private async Task WriteAuthorities(ConcurrentBag<NotQ100Data> data, ConcurrentBag<Q100Data> q100Data)
@@ -211,15 +213,15 @@ public partial class CsvFileService
         // So, in case this _does_ happen, just write them to a separate file and let a human deal with it.
         if (authoritiesWithoutAnId.Count > 0)
         {
-            await using CsvDataWriter cdw2 = CsvDataWriter.Create(Path.Combine(outputPath, "AuthoritiesWithoutId.csv"));
+            await using CsvDataWriter cdw2 = CsvDataWriter.Create(Path.Combine(NormalizedOutput, "AuthoritiesWithoutId.csv"));
             await cdw2.WriteAsync(authoritiesWithoutAnId.AsDataReader());
-            LogCsvFileCreated("AuthoritiesWithoutId", outputPath);
+            LogCsvFileCreated("AuthoritiesWithoutId", NormalizedOutput);
         }
 
-        await using CsvDataWriter cdw = CsvDataWriter.Create(Path.Combine(outputPath, "Authorities.csv"));
+        await using CsvDataWriter cdw = CsvDataWriter.Create(Path.Combine(NormalizedOutput, "Authorities.csv"));
         await cdw.WriteAsync(authorizesWithIds.AsDataReader());
 
-        LogCsvFileCreated("Authorities", outputPath);
+        LogCsvFileCreated("Authorities", NormalizedOutput);
     }
 
     private async Task WriteQuestions(ConcurrentBag<NotQ100Data> data)
@@ -231,10 +233,10 @@ public partial class CsvFileService
             x.QuestionText,
         }, x => x.QuestionNumber);
 
-        await using CsvDataWriter cdw = CsvDataWriter.Create(Path.Combine(outputPath, "Questions.csv"));
+        await using CsvDataWriter cdw = CsvDataWriter.Create(Path.Combine(NormalizedOutput, "Questions.csv"));
         await cdw.WriteAsync(what.AsDataReader());
 
-        LogCsvFileCreated("Questions", outputPath);
+        LogCsvFileCreated("Questions", NormalizedOutput);
     }
 
     [LoggerMessage(LogLevel.Information, "{Type} CSV file written to {OutputPath}")]
