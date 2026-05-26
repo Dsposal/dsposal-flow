@@ -4,6 +4,8 @@ obj/
 riderModule.iml
 /_ReSharper.Caches/
 
+Proprietary/
+
 # Waste Data Flow files (Downlaod from https://www.wastedataflow.org/reports/default.aspx)
 input/
 inputs/
