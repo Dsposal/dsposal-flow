@@ -7,8 +7,8 @@ public static class PatternExtractorExtensions
     private static readonly Regex[] PermitPatterns =
     [
         // EPA / NRW
-        new Regex(@"[A-Z]{2}\d{4}[A-Z]{2}(?:/(D|A|V|T|S)\d{4})?", RegexOptions.IgnoreCase),
         new Regex(@"EPR/[A-Z]{2}\d{4}[A-Z]{2}(?:/(D|A|V|T|S)\d{4})?", RegexOptions.IgnoreCase),
+        new Regex(@"[A-Z]{2}\d{4}[A-Z]{2}(?:/(D|A|V|T|S)\d{4})?", RegexOptions.IgnoreCase),
         new Regex(@"EAWML\d{6}", RegexOptions.IgnoreCase),
         new Regex(@"WML\d{6}", RegexOptions.IgnoreCase),
         // SEPA
