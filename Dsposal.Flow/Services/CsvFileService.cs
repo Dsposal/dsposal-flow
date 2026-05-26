@@ -120,14 +120,12 @@ public partial class CsvFileService
                     FacilityLicence = !exempt
                         ? ""
                         : singleLicense,
-                    FacilityLicences = !exempt ? "" : string.Join(", ", permits),
                     FacilityLicenceRaw = !exempt ? "" : x.FacilityLicence,
 
                     FacilityRegistration = !exempt
                         ? ""
                         : singleRegistration,
-                    FacilityRegistrations = !exempt ? "" : string.Join(", ", registrations),
-                    FacilityRegistrationRaw = !exempt ? "" : x.FacilityCode,
+                    FacilityCodeRaw = !exempt ? "" : x.FacilityCode,
                 };
             },
             x => (x.WasteProcessorId, x.WasteStreamId, x.WasteProcessorOutputId, x.SenderWasteProcessorOutputId)
@@ -217,14 +215,12 @@ public partial class CsvFileService
                     FacilityLicence = x.SkipFacilityAddressNormalization
                         ? ""
                         : singleLicense,
-                    FacilityLicences = x.SkipFacilityAddressNormalization ? "" : string.Join(", ", permits),
                     FacilityLicenceRaw = x.SkipFacilityAddressNormalization ? "" : x.FacilityLicence,
 
                     FacilityRegistration = x.SkipFacilityAddressNormalization
                         ? ""
                         : singleRegistration,
-                    FacilityRegistrations = x.SkipFacilityAddressNormalization ? "" : string.Join(", ", registrations),
-                    FacilityRegistrationRaw = x.SkipFacilityAddressNormalization ? "" : x.FacilityCode,
+                    FacilityCodeRaw = x.SkipFacilityAddressNormalization ? "" : x.FacilityCode,
                 };
             },
             x => x.NationalFacilityId);
