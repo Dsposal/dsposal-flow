@@ -77,6 +77,8 @@ async Task<int> Run(Options opts)
     
     var csvProcessor = new CsvFileService(opts.OutputDir, loggerFactory.CreateLogger<CsvFileService>());
     await csvProcessor.WriteNormalizedFiles(processor.NotQ100Data, processor.Q100Data);
+    
+    await csvProcessor.WriteQ100(processor.Q100Data);
  
     // var extraCsv = new ExtraCsvFiles(opts.OutputDir, loggerFactory.CreateLogger<ExtraCsvFiles>());
     // await extraCsv.WriteNormalizedFiles(processor.NotQ100Data, processor.Q100Data);
