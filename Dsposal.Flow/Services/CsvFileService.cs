@@ -115,7 +115,7 @@ public partial class CsvFileService
                     
                     // Ugh. Some facilities are exempt (have a national ID of 0) but we still want the facility details... So, I guess we gotta do this again :'(
                     FacilityAddress = !exempt ? "" : facilityAddress,
-                    FacilityPostCode = !exempt ? "" : x.FacilityPostCode,
+                    FacilityPostCode = !exempt ? "" : x.FacilityPostCode.CleanupPostcode(),
 
                     FacilityLicence = !exempt
                         ? ""
@@ -210,7 +210,7 @@ public partial class CsvFileService
                     x.FacilityName,
 
                     FacilityAddress = facilityAddress,
-                    FacilityPostCode = x.SkipFacilityAddressNormalization ? "" : x.FacilityPostCode,
+                    FacilityPostCode = x.SkipFacilityAddressNormalization ? "" : x.FacilityPostCode.CleanupPostcode(),
 
                     FacilityLicence = x.SkipFacilityAddressNormalization
                         ? ""
