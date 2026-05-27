@@ -11,8 +11,11 @@ public static class StringExtensions
         if(postcode.Equals("N/A", StringComparison.InvariantCultureIgnoreCase)
            || postcode.Equals("NA", StringComparison.InvariantCultureIgnoreCase)
            || postcode.Equals("Not entered", StringComparison.InvariantCultureIgnoreCase)
+           || postcode.Equals("Nothing entered", StringComparison.InvariantCultureIgnoreCase)
            || postcode.Equals("Not applicable", StringComparison.InvariantCultureIgnoreCase)
-           || postcode.Equals("Not applicable (N/A)", StringComparison.InvariantCultureIgnoreCase))
+           || postcode.Equals("Not applicable (N/A)", StringComparison.InvariantCultureIgnoreCase)
+           || postcode.Equals("Not specified", StringComparison.InvariantCultureIgnoreCase)
+           || postcode.Equals("Not provided", StringComparison.InvariantCultureIgnoreCase))
             return null;
         
         var pc = Regex.Replace(postcode, "\\s", string.Empty).ToUpper();
