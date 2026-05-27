@@ -95,6 +95,7 @@ public partial class CsvFileService
                     x.SenderWasteProcessorOutputId,
 
                     // data
+                    x.Period,
                     x.AuthorityId,
                     x.WasteStreamTypeId,
                     x.FacilityTypeId,
