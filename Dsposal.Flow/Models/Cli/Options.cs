@@ -9,12 +9,12 @@ public class Options
 {
     [
         Option('i', "input",
-            Required = true,
+            Required = false,
             HelpText = "The files and directories to process as inputs."
         ),
     ]
     public IEnumerable<string> FilesAndDirs { get; set; }
-    
+
     [Option('o', "output",
         Required = false,
         HelpText = "The directory to write the output files to.",
