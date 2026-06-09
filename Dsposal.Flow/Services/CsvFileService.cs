@@ -138,7 +138,8 @@ public partial class CsvFileService
             MaxBufferSize = int.MaxValue,
         });
         await cdw.WriteAsync(what.AsDataReader());
-        
+
+        LogCsvFileCreated("Q100", outputPath);
     }
 
     private async Task WriteNormalizedFiles(ConcurrentBag<NotQ100Data> data)
