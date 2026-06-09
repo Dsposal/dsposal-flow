@@ -133,7 +133,10 @@ public partial class CsvFileService
             
         );
         
-        await using CsvDataWriter cdw = CsvDataWriter.Create(Path.Combine(outputPath, "Q100.csv"));
+        await using CsvDataWriter cdw = CsvDataWriter.Create(Path.Combine(outputPath, "Q100.csv"), new CsvDataWriterOptions()
+        {
+            MaxBufferSize = int.MaxValue,
+        });
         await cdw.WriteAsync(what.AsDataReader());
         
     }
