@@ -17,3 +17,7 @@ AMD Ryzen 9 5900X 1.73GHz, 1 CPU, 24 logical and 12 physical cores
 | **ReadExcelFile_EPPlus**    | **inputs/small.xlsx** |  **1,331.45 ms** |  **13.071 ms** |  **12.227 ms** | **0.488** |    **0.00** |  **47000.0000** | **22000.0000** | **12000.0000** |  **853.34 MB** |       **0.666** |
 | ReadExcelFile_ClosedXML | inputs/small.xlsx |  2,725.77 ms |  12.948 ms |  11.478 ms | 1.000 |    0.01 |  82000.0000 | 23000.0000 |  3000.0000 | 1281.16 MB |       1.000 |
 | ReadExcelFile_Sylvan    | inputs/small.xlsx |     19.80 ms |   0.219 ms |   0.194 ms | 0.007 |    0.00 |    468.7500 |   218.7500 |   218.7500 |    6.05 MB |       0.005 |
+
+
+**inputs/large.xlsx** is a 35.8 MiB excel file with just over 269,000 rows in the Q100 sheet.
+**inputs/small.xlsx** is a 3.7 MiB excel file with just over 82,000 rows in the Q100 sheet.
