@@ -54,14 +54,14 @@ async Task<int> Run(Options opts)
     {
         opts.OutputDir = Path.Combine(Directory.GetCurrentDirectory(), "output");
     }
-    
-    if(!Directory.Exists(opts.OutputDir))
+
+    if (!Directory.Exists(opts.OutputDir))
     {
         Directory.CreateDirectory(opts.OutputDir);
     }
-    
+
     var logger = loggerFactory.CreateLogger("Dsposal.Flow");
-    
+
     var fileService = new ExcelFileService(loggerFactory.CreateLogger<ExcelFileService>());
     if (!fileService.ResolveInputFiles(opts))
         return -1;
@@ -71,20 +71,12 @@ async Task<int> Run(Options opts)
 
     var processor = new DataProcessor(loggerFactory.CreateLogger<DataProcessor>());
     await processor.ProcessFilesAsync(opts.ExcelFiles);
-    
-    // var eaService = new EaService(opts.OutputDir, loggerFactory.CreateLogger<EaService>());
-    // await eaService.FetchPermitDataFromEA(processor.Q100Data);
-    
+
     var csvProcessor = new CsvFileService(opts.OutputDir, loggerFactory.CreateLogger<CsvFileService>());
     await csvProcessor.WriteNormalizedFiles(processor.NotQ100Data, processor.Q100Data);
-    
+
     await csvProcessor.WriteQ100(processor.Q100Data);
- 
-    // var extraCsv = new ExtraCsvFiles(opts.OutputDir, loggerFactory.CreateLogger<ExtraCsvFiles>());
-    // await extraCsv.WriteNormalizedFiles(processor.NotQ100Data, processor.Q100Data);
-    
-    // await eaService.WriteNormalizedFiles(processor.Q100Data);
-    
+
     return 0;
 }
 
