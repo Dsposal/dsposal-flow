@@ -118,12 +118,12 @@ public partial class CsvFileService
                     FacilityAddress = !exempt ? "" : facilityAddress,
                     FacilityPostCode = !exempt ? "" : x.FacilityPostCode.CleanupPostcode(),
 
-                    FacilityLicence = !exempt
+                    FacilityLicenceExtracted = !exempt
                         ? ""
                         : singleLicense,
                     FacilityLicenceRaw = !exempt ? "" : x.FacilityLicence,
 
-                    FacilityRegistration = !exempt
+                    FacilityRegistrationExtracted = !exempt
                         ? ""
                         : singleRegistration,
                     FacilityCodeRaw = !exempt ? "" : x.FacilityCode,
@@ -217,12 +217,12 @@ public partial class CsvFileService
                     FacilityAddress = facilityAddress,
                     FacilityPostCode = x.SkipFacilityAddressNormalization ? "" : x.FacilityPostCode.CleanupPostcode(),
 
-                    FacilityLicence = x.SkipFacilityAddressNormalization
+                    FacilityLicenceExtracted = x.SkipFacilityAddressNormalization
                         ? ""
                         : singleLicense,
                     FacilityLicenceRaw = x.SkipFacilityAddressNormalization ? "" : x.FacilityLicence,
 
-                    FacilityRegistration = x.SkipFacilityAddressNormalization
+                    FacilityRegistrationExtracted = x.SkipFacilityAddressNormalization
                         ? ""
                         : singleRegistration,
                     FacilityCodeRaw = x.SkipFacilityAddressNormalization ? "" : x.FacilityCode,
