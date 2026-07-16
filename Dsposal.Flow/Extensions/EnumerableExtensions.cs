@@ -7,12 +7,13 @@ public static class EnumerableExtensions
         this IEnumerable<TSource> source,
         Func<TSource, TResult> selector,
         Func<TSource, TKey> keySelector,
-        Func<TSource, bool>? filter = null
+        Func<TSource, bool>? filter = null,
+        Func<TSource, TKey>? orderBySelector = null
     )
     {
         return source
             .DistinctBy(keySelector)
-            .OrderBy(keySelector)
+            .OrderBy(orderBySelector ?? keySelector)
             .Where(filter ?? (x => true))
             .Select(selector);
     }

@@ -15,4 +15,7 @@ public class NotQ100Data : SharedData
     public long ColOrder { get; set; }
     public long RowIdent { get; set; }
     public long ColIdent { get; set; }
+    
+    [DataMember(Name = "CollateID")]
+    public long CollateId { get; set; }
 }
