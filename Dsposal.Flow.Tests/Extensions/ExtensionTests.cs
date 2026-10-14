@@ -1,6 +1,6 @@
 using Dsposal.Flow.Extensions;
 
-namespace DsposalForgeTests;
+namespace DsposalForgeTests.Extensions;
 
 public class ExtensionTests
 {
@@ -24,6 +24,14 @@ public class ExtensionTests
     {
         Assert.That("AB1".CleanupPostcode(), Is.EqualTo("AB1"));
         Assert.That("AB123CDE".CleanupPostcode(), Is.EqualTo("AB123CDE"));
+    }
+
+    [Test]
+    public void CleanupPostcode_NullAndNonAlphanumericReturnOriginal()
+    {
+        string? nullPostcode = null;
+        Assert.That(nullPostcode.CleanupPostcode(), Is.Null);
+        Assert.That("SW1A-1AA".CleanupPostcode(), Is.EqualTo("SW1A-1AA"));
     }
 
     [Test]
