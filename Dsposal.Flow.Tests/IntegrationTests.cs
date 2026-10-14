@@ -62,4 +62,49 @@ public class IntegrationTests
             File.Delete(path);
         }
     }
+    [Test]
+    public async Task DataProcessor_ProcessesNotQ100OnlyWorkbook()
+    {
+        var path = TestWorkbookFactory.CreateNotQ100OnlyWorkbook();
+        try
+        {
+            var processor = new DataProcessor(NullLogger<DataProcessor>.Instance);
+            await processor.ProcessFilesAsync(new List<FileInfo> { new(path) });
+
+            Assert.That(processor.NotQ100Data.Count, Is.EqualTo(1));
+            Assert.That(processor.Q100Data.Count, Is.EqualTo(0));
+        }
+        finally { File.Delete(path); }
+    }
+
+    [Test]
+    public async Task DataProcessor_ProcessesQ100OnlyWorkbook()
+    {
+        var path = TestWorkbookFactory.CreateQ100OnlyWorkbook();
+        try
+        {
+            var processor = new DataProcessor(NullLogger<DataProcessor>.Instance);
+            await processor.ProcessFilesAsync(new List<FileInfo> { new(path) });
+
+            Assert.That(processor.NotQ100Data.Count, Is.EqualTo(0));
+            Assert.That(processor.Q100Data.Count, Is.EqualTo(1));
+        }
+        finally { File.Delete(path); }
+    }
+
+    [Test]
+    public async Task DataProcessor_ProcessesEmptyWorkbook()
+    {
+        var path = TestWorkbookFactory.CreateEmptyWorkbook();
+        try
+        {
+            var processor = new DataProcessor(NullLogger<DataProcessor>.Instance);
+            await processor.ProcessFilesAsync(new List<FileInfo> { new(path) });
+
+            Assert.That(processor.NotQ100Data.Count, Is.EqualTo(0));
+            Assert.That(processor.Q100Data.Count, Is.EqualTo(0));
+        }
+        finally { File.Delete(path); }
+    }
+
 }

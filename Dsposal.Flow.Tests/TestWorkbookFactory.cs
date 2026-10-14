@@ -91,4 +91,56 @@ public static class TestWorkbookFactory
         workbook.SaveAs(path);
         return path;
     }
+
+
+    public static string CreateNotQ100OnlyWorkbook()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"dsposal-notq-{Guid.NewGuid():N}.xlsx");
+        using var workbook = new XLWorkbook();
+        var sheet = workbook.Worksheets.Add("NotQ100");
+        sheet.Cell(1, 1).Value = "note row";
+        sheet.Cell(2, 1).InsertData(new[] { NotQ100Headers });
+        sheet.Cell(3, 1).Value = "Adur District Council";
+        sheet.Cell(3, 2).Value = "Jan 25 - Mar 25";
+        sheet.Cell(3, 3).Value = "Q001";
+        sheet.Cell(3, 8).Value = "64889";
+        workbook.SaveAs(path);
+        return path;
+    }
+
+    public static string CreateQ100OnlyWorkbook()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"dsposal-q100-{Guid.NewGuid():N}.xlsx");
+        using var workbook = new XLWorkbook();
+        var sheet = workbook.Worksheets.Add("Q100");
+        sheet.Cell(1, 1).Value = "note row";
+        sheet.Cell(2, 1).InsertData(new[] { Q100Headers });
+        sheet.Cell(3, 5).Value = "Luton Borough Council";
+        sheet.Cell(3, 6).Value = 1;
+        sheet.Cell(3, 7).Value = "Jan 25 - Mar 25";
+        sheet.Cell(3, 9).Value = 1;
+        sheet.Cell(3, 10).Value = "Source segregated recyclate";
+        sheet.Cell(3, 11).Value = 16;
+        sheet.Cell(3, 14).Value = "U R M ( U K ) Limited ";
+        sheet.Cell(3, 21).Value = 519;
+        sheet.Cell(3, 23).Value = "Mixed glass";
+        sheet.Cell(3, 24).Value = 519;
+        workbook.SaveAs(path);
+        return path;
+    }
+
+
+    public static string CreateEmptyWorkbook()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"dsposal-empty-{Guid.NewGuid():N}.xlsx".Replace(" ", ""));
+        using var workbook = new XLWorkbook();
+        var notQ = workbook.Worksheets.Add("NotQ100");
+        notQ.Cell(1, 1).Value = "note row";
+        notQ.Cell(2, 1).InsertData(new[] { NotQ100Headers });
+        var q = workbook.Worksheets.Add("Q100");
+        q.Cell(1, 1).Value = "note row";
+        q.Cell(2, 1).InsertData(new[] { Q100Headers });
+        workbook.SaveAs(path);
+        return path;
+    }
 }
