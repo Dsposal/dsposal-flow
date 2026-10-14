@@ -27,6 +27,10 @@
     <ItemGroup>
         <Content Include="input/**\*.*" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Dsposal.Flow.Tests" />
+    </ItemGroup>
     
 
 </Project>

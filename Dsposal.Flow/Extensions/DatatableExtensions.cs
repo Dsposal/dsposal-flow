@@ -5,7 +5,7 @@ namespace Dsposal.Flow.Extensions;
 
 public static class DatatableExtensions
 {
-    static Table ToSpectreTable(DataTable dataTable)
+    internal static Table ToSpectreTable(DataTable dataTable)
     {
         var table = new Table();
 

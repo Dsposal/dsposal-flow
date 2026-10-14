@@ -471,7 +471,7 @@ public partial class CsvFileService
         LogCsvFileCreated($"NotQ100 {questionNumber}", NormalizedOutput);
     }
 
-    private async Task WritePivotedQuestionFileDataTable(string questionNumber, List<NotQ100Data> data, Dictionary<string, long> authorityLookup)
+    internal async Task WritePivotedQuestionFileDataTable(string questionNumber, List<NotQ100Data> data, Dictionary<string, long> authorityLookup)
     {
         var contextColumns = new[] { "Period", "Authority", "AuthorityId", "MaterialGroup", "QuestionNumber" };
 
@@ -591,14 +591,14 @@ public partial class CsvFileService
         LogCsvFileCreated($"NotQ100 {questionNumber}", NormalizedOutput);
     }
 
-    private Task WriteRows(ConcurrentBag<NotQ100Data> data)
+    internal Task WriteRows(ConcurrentBag<NotQ100Data> data)
     {
         var whatToWrite = data.GetData(x => new { x.RowIdent, x.RowText },
             x => x.RowIdent);
 
         return WriteCsvFile(Path.Combine(NormalizedOutput, "Rows.csv"), "Rows", whatToWrite);
     }
-    private Task WriteCols(ConcurrentBag<NotQ100Data> data)
+    internal Task WriteCols(ConcurrentBag<NotQ100Data> data)
     {
         return Task.CompletedTask;
     }
