@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <!-- Proprietary code is not committed, so it is out of scope for coverage. -->
+          <Exclude>[Dsposal.Flow]Dsposal.Flow.Proprietary.*</Exclude>
+          <!-- Also drop the uncommitted sources and machine-generated logging. -->
+          <ExcludeByFile>**/Proprietary/**/*.cs,**/*.g.cs</ExcludeByFile>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

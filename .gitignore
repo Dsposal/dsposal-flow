@@ -13,5 +13,6 @@ inputs/
 
 coveragereport/
 TestResults/
+*.cobertura.xml
 
 *.DotSettings.user
