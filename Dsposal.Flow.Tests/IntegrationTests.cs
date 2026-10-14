@@ -1,5 +1,6 @@
 using System.IO;
 using Dsposal.Flow.Services;
+using DsposalForgeTests.Helpers;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DsposalForgeTests;
@@ -133,6 +134,21 @@ public class IntegrationTests
 
             Assert.That(processor.NotQ100Data.Count, Is.EqualTo(1));
             Assert.That(processor.Q100Data.Count, Is.EqualTo(1));
+        }
+        finally { File.Delete(path); }
+    }
+
+    [Test]
+    public async Task DataProcessor_DoesNotCrashOnCorruptWorkbook()
+    {
+        var path = TestWorkbookFactory.CreateCorruptWorkbook();
+        try
+        {
+            var processor = new DataProcessor(NullLogger<DataProcessor>.Instance);
+            await processor.ProcessFilesAsync(new List<FileInfo> { new(path) });
+
+            Assert.That(processor.NotQ100Data, Is.Empty);
+            Assert.That(processor.Q100Data, Is.Empty);
         }
         finally { File.Delete(path); }
     }

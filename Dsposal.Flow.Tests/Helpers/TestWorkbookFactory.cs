@@ -1,6 +1,6 @@
 using ClosedXML.Excel;
 
-namespace DsposalForgeTests;
+namespace DsposalForgeTests.Helpers;
 
 public static class TestWorkbookFactory
 {
@@ -192,6 +192,13 @@ public static class TestWorkbookFactory
         var sheet = workbook.Worksheets.Add("Ignored");
         sheet.Cell(1, 1).Value = "note row";
         workbook.SaveAs(path);
+        return path;
+    }
+
+    public static string CreateCorruptWorkbook()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"dsposal-corrupt-{Guid.NewGuid():N}.xlsx");
+        File.WriteAllText(path, "this is definitely not a valid xlsx file");
         return path;
     }
 }
