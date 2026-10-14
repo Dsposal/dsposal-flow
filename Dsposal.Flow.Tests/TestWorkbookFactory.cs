@@ -61,4 +61,34 @@ public static class TestWorkbookFactory
         workbook.SaveAs(path);
         return path;
     }
+
+    public static string CreateTempWorkbookWithFilteredRows()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"dsposal-filtered-{Guid.NewGuid():N}.xlsx");
+
+        using var workbook = new XLWorkbook();
+
+        var notQ = workbook.Worksheets.Add("NotQ100");
+        notQ.Cell(1, 1).Value = "note row";
+        notQ.Cell(2, 1).InsertData(new[] { NotQ100Headers });
+        notQ.Cell(3, 1).Value = "Adur District Council";
+        notQ.Cell(3, 2).Value = "Jan 25 - Mar 25";
+        notQ.Cell(3, 3).Value = "Q001";
+        notQ.Cell(3, 8).Value = "64889";
+        notQ.Cell(4, 1).Value = "Adur District Council";
+        notQ.Cell(4, 2).Value = "";
+        notQ.Cell(4, 3).Value = "Q002";
+
+        var q = workbook.Worksheets.Add("Q100");
+        q.Cell(1, 1).Value = "note row";
+        q.Cell(2, 1).InsertData(new[] { Q100Headers });
+        q.Cell(3, 1).Value = 6265112;
+        q.Cell(3, 5).Value = "Luton Borough Council";
+        q.Cell(3, 7).Value = "Jan 25 - Mar 25";
+        q.Cell(4, 5).Value = "Luton Borough Council";
+        q.Cell(4, 7).Value = "";
+
+        workbook.SaveAs(path);
+        return path;
+    }
 }
