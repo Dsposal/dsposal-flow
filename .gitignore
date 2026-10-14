@@ -11,4 +11,7 @@ Proprietary/
 input/
 inputs/
 
+coveragereport/
+TestResults/
+
 *.DotSettings.user

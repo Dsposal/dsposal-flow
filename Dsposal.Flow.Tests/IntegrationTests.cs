@@ -107,4 +107,49 @@ public class IntegrationTests
         finally { File.Delete(path); }
     }
 
+    [Test]
+    public async Task DataProcessor_ProcessesCaseInsensitiveSheets()
+    {
+        var path = TestWorkbookFactory.CreateWorkbookWithCaseInsensitiveSheets();
+        try
+        {
+            var processor = new DataProcessor(NullLogger<DataProcessor>.Instance);
+            await processor.ProcessFilesAsync(new List<FileInfo> { new(path) });
+
+            Assert.That(processor.NotQ100Data.Count, Is.EqualTo(1));
+            Assert.That(processor.Q100Data.Count, Is.EqualTo(1));
+        }
+        finally { File.Delete(path); }
+    }
+
+    [Test]
+    public async Task DataProcessor_DoesNotCrashOnBadPeriodStrings()
+    {
+        var path = TestWorkbookFactory.CreateWorkbookWithBadPeriod();
+        try
+        {
+            var processor = new DataProcessor(NullLogger<DataProcessor>.Instance);
+            await processor.ProcessFilesAsync(new List<FileInfo> { new(path) });
+
+            Assert.That(processor.NotQ100Data.Count, Is.EqualTo(1));
+            Assert.That(processor.Q100Data.Count, Is.EqualTo(1));
+        }
+        finally { File.Delete(path); }
+    }
+
+    [Test]
+    public async Task DataProcessor_ProcessesWorkbookWithNoSheets()
+    {
+        var path = TestWorkbookFactory.CreateWorkbookWithNoSheets();
+        try
+        {
+            var processor = new DataProcessor(NullLogger<DataProcessor>.Instance);
+            await processor.ProcessFilesAsync(new List<FileInfo> { new(path) });
+
+            Assert.That(processor.NotQ100Data.Count, Is.EqualTo(0));
+            Assert.That(processor.Q100Data.Count, Is.EqualTo(0));
+        }
+        finally { File.Delete(path); }
+    }
+
 }

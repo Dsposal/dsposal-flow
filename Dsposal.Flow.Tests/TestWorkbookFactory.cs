@@ -143,4 +143,55 @@ public static class TestWorkbookFactory
         workbook.SaveAs(path);
         return path;
     }
+
+
+    public static string CreateWorkbookWithCaseInsensitiveSheets()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"ds disposal-case-{Guid.NewGuid():N}.xlsx".Replace(" ", ""));
+        using var workbook = new XLWorkbook();
+        var notQ = workbook.Worksheets.Add("notq100");
+        notQ.Cell(1, 1).Value = "note row";
+        notQ.Cell(2, 1).InsertData(new[] { NotQ100Headers });
+        notQ.Cell(3, 1).Value = "Adur District Council";
+        notQ.Cell(3, 2).Value = "Jan 25 - Mar 25";
+        notQ.Cell(3, 3).Value = "Q001";
+        var q = workbook.Worksheets.Add("q100");
+        q.Cell(1, 1).Value = "note row";
+        q.Cell(2, 1).InsertData(new[] { Q100Headers });
+        q.Cell(3, 5).Value = "Luton Borough Council";
+        q.Cell(3, 6).Value = 1;
+        q.Cell(3, 7).Value = "Jan 25 - Mar 25";
+        workbook.SaveAs(path);
+        return path;
+    }
+
+    public static string CreateWorkbookWithBadPeriod()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"ds disposal-badperiod-{Guid.NewGuid():N}.xlsx".Replace(" ", ""));
+        using var workbook = new XLWorkbook();
+        var notQ = workbook.Worksheets.Add("NotQ100");
+        notQ.Cell(1, 1).Value = "note row";
+        notQ.Cell(2, 1).InsertData(new[] { NotQ100Headers });
+        notQ.Cell(3, 1).Value = "Adur District Council";
+        notQ.Cell(3, 2).Value = "not-a-period";
+        notQ.Cell(3, 3).Value = "Q001";
+        var q = workbook.Worksheets.Add("Q100");
+        q.Cell(1, 1).Value = "note row";
+        q.Cell(2, 1).InsertData(new[] { Q100Headers });
+        q.Cell(3, 5).Value = "Luton Borough Council";
+        q.Cell(3, 6).Value = 1;
+        q.Cell(3, 7).Value = "not-a-period";
+        workbook.SaveAs(path);
+        return path;
+    }
+
+    public static string CreateWorkbookWithNoSheets()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"ds disposal-nosheets-{Guid.NewGuid():N}.xlsx".Replace(" ", ""));
+        using var workbook = new XLWorkbook();
+        var sheet = workbook.Worksheets.Add("Ignored");
+        sheet.Cell(1, 1).Value = "note row";
+        workbook.SaveAs(path);
+        return path;
+    }
 }

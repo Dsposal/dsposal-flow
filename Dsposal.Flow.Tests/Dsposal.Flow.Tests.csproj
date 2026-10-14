@@ -30,4 +30,8 @@
         <Using Include="NUnit.Framework"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="TestResults\79f28f16-7008-4d03-bdda-c4398c0a6be8\" />
+    </ItemGroup>
+
 </Project>
