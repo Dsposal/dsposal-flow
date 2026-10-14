@@ -3,7 +3,7 @@ using System.Reflection;
 using Dsposal.Flow.Services;
 using Sylvan.Data.Csv;
 
-namespace DsposalForgeTests;
+namespace DsposalForgeTests.Helpers;
 
 public sealed class FakeCsvWriter : ICsvWriter
 {

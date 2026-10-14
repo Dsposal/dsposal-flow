@@ -1,6 +1,6 @@
 using Dsposal.Flow.Models.WDF;
 
-namespace DsposalForgeTests;
+namespace DsposalForgeTests.Helpers;
 
 public static class TestDataFactory
 {
