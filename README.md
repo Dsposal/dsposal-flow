@@ -24,6 +24,7 @@ Built for performance - powered by [Sylvan.Data.Excel](https://github.com/MarkPf
 - Full denormalization of NotQ100 data alongside Q100 output (currently prioritised Q100 for internal use).
 - Tests
 - Downloadable executable for users who don't want to build the tool themselves
+- Re-write into Rust for MOOOORE speed??
 
 ## Obtaining WDF Data
 

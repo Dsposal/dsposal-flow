@@ -27,12 +27,17 @@ public partial class CsvFileService
 
     public async Task WriteNormalizedFiles(ConcurrentBag<NotQ100Data> notQ100Data, ConcurrentBag<Q100Data> q100Data)
     {
+        var authorityLookup = q100Data
+            .Where(x => x.AuthorityId > 0 && !string.IsNullOrEmpty(x.Authority))
+            .DistinctBy(x => x.Authority)
+            .ToDictionary(x => x.Authority, x => x.AuthorityId);
+
         Task[] tasks =
         [
             // Write the files for q100 data that should be in it's own tables
             WriteNormalizedFiles(q100Data),
             // Write the files for the not q100 data that should be in it's own tables
-            WriteNormalizedFiles(notQ100Data),
+            WriteNormalizedFiles(notQ100Data, authorityLookup),
             // Write any shared data from both sets that should be a single table
             WriteNormalizedFiles(q100Data, notQ100Data),
         ];
@@ -40,11 +45,12 @@ public partial class CsvFileService
         await Task.WhenAll(tasks);
     }
 
-    private async Task WriteNormalizedFiles(ConcurrentBag<NotQ100Data> data)
+    private async Task WriteNormalizedFiles(ConcurrentBag<NotQ100Data> data, Dictionary<string, long> authorityLookup)
     {
         await Task.WhenAll([
             WriteQuestions(data),
-            WriteCollate(data)
+            WriteCollate(data),
+            WritePivotedNotQ100Data(data, authorityLookup),
         ]);
     }
 
@@ -343,6 +349,256 @@ public partial class CsvFileService
         return WriteCsvFile(Path.Combine(NormalizedOutput, "Collate.csv"), "Collate", whatToWrite);
     }
     
+    private async Task WritePivotedNotQ100Data(ConcurrentBag<NotQ100Data> data, Dictionary<string, long> authorityLookup)
+    {
+        var byQuestion = data
+            .Where(x => !string.IsNullOrEmpty(x.QuestionNumber))
+            .GroupBy(x => x.QuestionNumber);
+
+        var tasks = byQuestion.Select(qg =>
+            WritePivotedQuestionFile(qg.Key, qg.ToList(), authorityLookup));
+
+        await Task.WhenAll(tasks);
+    }
+
+    private async Task WritePivotedQuestionFile(string questionNumber, List<NotQ100Data> data, Dictionary<string, long> authorityLookup)
+    {
+        var contextColumns = new[] { "Period", "Authority", "AuthorityId", "MaterialGroup", "QuestionNumber" };
+
+        var colColumns = data
+            .OrderBy(x => x.ColOrder)
+            .Select(x => new { x.ColText, x.ColOrder })
+            .DistinctBy(x => x.ColText)
+            .ToList();
+
+        var hasColText = colColumns.Any(c => !string.IsNullOrEmpty(c.ColText));
+
+        if (!hasColText)
+        {
+            var rowTextColumns = data
+                .OrderBy(x => x.RowOrder)
+                .Select(x => new { x.RowText, x.RowOrder })
+                .DistinctBy(x => x.RowText)
+                .ToList();
+
+            var groupedByContext = data
+                .GroupBy(x => new { x.Period, x.Authority, x.MaterialGroup, x.QuestionNumber })
+                .ToList();
+
+            var pivotedRows = groupedByContext
+                .Select(g =>
+                {
+                    var row = new Dictionary<string, object>
+                    {
+                        ["Period"] = g.Key.Period,
+                        ["Authority"] = g.Key.Authority,
+                        ["AuthorityId"] = authorityLookup.GetValueOrDefault(g.Key.Authority, 0),
+                        ["MaterialGroup"] = g.Key.MaterialGroup ?? "",
+                        ["QuestionNumber"] = g.Key.QuestionNumber
+                    };
+
+                    foreach (var rtCol in rowTextColumns)
+                    {
+                        var values = g.Where(x => x.RowText == rtCol.RowText)
+                            .Select(x => x.Data)
+                            .Where(d => d is not null)
+                            .ToList();
+
+                        row[rtCol.RowText ?? string.Empty] = values.Count switch
+                        {
+                            0 => "",
+                            1 => values[0]!,
+                            _ => string.Join(", ", values)
+                        };
+                    }
+
+                    return (IDictionary<string, object>)row;
+                })
+                .ToList();
+
+            var schema = contextColumns.Concat(rowTextColumns.Select(c => c.RowText ?? string.Empty));
+            var reader = new PivotedDataReader(schema, pivotedRows);
+
+            await using var cdw = CsvDataWriter.Create(
+                Path.Combine(outputPath, $"{questionNumber}.csv"));
+            await cdw.WriteAsync(reader);
+
+            LogCsvFileCreated($"NotQ100 {questionNumber}", NormalizedOutput);
+            return;
+        }
+
+        var pivotedColRows = data
+            .GroupBy(x => new
+            {
+                x.Period,
+                x.Authority,
+                x.MaterialGroup,
+                x.QuestionNumber,
+                RowText = x.RowText ?? string.Empty
+            })
+            .OrderBy(g => g.Min(x => x.RowOrder))
+            .Select(g =>
+            {
+                var row = new Dictionary<string, object>
+                {
+                    ["Period"] = g.Key.Period,
+                    ["Authority"] = g.Key.Authority,
+                    ["AuthorityId"] = authorityLookup.GetValueOrDefault(g.Key.Authority, 0),
+                    ["MaterialGroup"] = g.Key.MaterialGroup ?? "",
+                    ["QuestionNumber"] = g.Key.QuestionNumber,
+                    ["RowText"] = g.Key.RowText
+                };
+
+                foreach (var col in colColumns.Where(c => !string.IsNullOrEmpty(c.ColText)))
+                {
+                    var values = g.Where(x => x.ColText == col.ColText)
+                        .Select(x => x.Data)
+                        .Where(d => d is not null)
+                        .ToList();
+
+                    row[col.ColText!] = values.Count switch
+                    {
+                        0 => "",
+                        1 => values[0]!,
+                        _ => string.Join(", ", values)
+                    };
+                }
+
+                return (IDictionary<string, object>)row;
+            })
+            .ToList();
+
+        var colSchema = contextColumns.Append("RowText")
+            .Concat(colColumns.Where(c => !string.IsNullOrEmpty(c.ColText)).Select(c => c.ColText!));
+        var colReader = new PivotedDataReader(colSchema, pivotedColRows);
+
+        await using var cdw2 = CsvDataWriter.Create(
+            Path.Combine(outputPath, $"{questionNumber}.csv"));
+        await cdw2.WriteAsync(colReader);
+
+        LogCsvFileCreated($"NotQ100 {questionNumber}", NormalizedOutput);
+    }
+
+    private async Task WritePivotedQuestionFileDataTable(string questionNumber, List<NotQ100Data> data, Dictionary<string, long> authorityLookup)
+    {
+        var contextColumns = new[] { "Period", "Authority", "AuthorityId", "MaterialGroup", "QuestionNumber" };
+
+        var colColumns = data
+            .OrderBy(x => x.ColOrder)
+            .Select(x => new { x.ColText, x.ColOrder })
+            .DistinctBy(x => x.ColText)
+            .ToList();
+
+        var hasColText = colColumns.Any(c => !string.IsNullOrEmpty(c.ColText));
+
+        if (!hasColText)
+        {
+            var rowTextColumns = data
+                .OrderBy(x => x.RowOrder)
+                .Select(x => new { x.RowText, x.RowOrder })
+                .DistinctBy(x => x.RowText)
+                .ToList();
+
+            var schemaColumnNames = contextColumns
+                .Concat(rowTextColumns.Select(c => c.RowText ?? string.Empty))
+                .ToList();
+
+            var dt = new System.Data.DataTable();
+            foreach (var name in schemaColumnNames)
+                dt.Columns.Add(name);
+
+            var groupedByContext = data
+                .GroupBy(x => new { x.Period, x.Authority, x.MaterialGroup, x.QuestionNumber });
+
+            foreach (var g in groupedByContext)
+            {
+                var row = dt.NewRow();
+                row["Period"] = g.Key.Period;
+                row["Authority"] = g.Key.Authority;
+                row["AuthorityId"] = authorityLookup.GetValueOrDefault(g.Key.Authority, 0);
+                row["MaterialGroup"] = g.Key.MaterialGroup ?? "";
+                row["QuestionNumber"] = g.Key.QuestionNumber;
+
+                foreach (var rtCol in rowTextColumns)
+                {
+                    var values = g.Where(x => x.RowText == rtCol.RowText)
+                        .Select(x => x.Data)
+                        .Where(d => d is not null)
+                        .ToList();
+
+                    row[rtCol.RowText ?? string.Empty] = values.Count switch
+                    {
+                        0 => "",
+                        1 => values[0]!,
+                        _ => string.Join(", ", values)
+                    };
+                }
+
+                dt.Rows.Add(row);
+            }
+
+            await using var cdw = CsvDataWriter.Create(
+                Path.Combine(outputPath, $"{questionNumber}.csv"));
+            await cdw.WriteAsync(dt.CreateDataReader());
+
+            LogCsvFileCreated($"NotQ100 {questionNumber}", NormalizedOutput);
+            return;
+        }
+
+        var pivotedColSchema = contextColumns.Append("RowText")
+            .Concat(colColumns.Where(c => !string.IsNullOrEmpty(c.ColText)).Select(c => c.ColText!))
+            .ToList();
+
+        var dt2 = new System.Data.DataTable();
+        foreach (var name in pivotedColSchema)
+            dt2.Columns.Add(name);
+
+        var pivotedRows = data
+            .GroupBy(x => new
+            {
+                x.Period,
+                x.Authority,
+                x.MaterialGroup,
+                x.QuestionNumber,
+                RowText = x.RowText ?? string.Empty
+            })
+            .OrderBy(g => g.Min(x => x.RowOrder));
+
+        foreach (var g in pivotedRows)
+        {
+            var row = dt2.NewRow();
+            row["Period"] = g.Key.Period;
+            row["Authority"] = g.Key.Authority;
+            row["AuthorityId"] = authorityLookup.GetValueOrDefault(g.Key.Authority, 0);
+            row["MaterialGroup"] = g.Key.MaterialGroup ?? "";
+            row["QuestionNumber"] = g.Key.QuestionNumber;
+            row["RowText"] = g.Key.RowText;
+
+            foreach (var col in colColumns.Where(c => !string.IsNullOrEmpty(c.ColText)))
+            {
+                var values = g.Where(x => x.ColText == col.ColText)
+                    .Select(x => x.Data)
+                    .Where(d => d is not null)
+                    .ToList();
+
+                row[col.ColText!] = values.Count switch
+                {
+                    0 => "",
+                    1 => values[0]!,
+                    _ => string.Join(", ", values)
+                };
+            }
+
+            dt2.Rows.Add(row);
+        }
+
+        await using var cdw2 = CsvDataWriter.Create(
+            Path.Combine(outputPath, $"{questionNumber}.csv"));
+        await cdw2.WriteAsync(dt2.CreateDataReader());
+
+        LogCsvFileCreated($"NotQ100 {questionNumber}", NormalizedOutput);
+    }
+
     private Task WriteRows(ConcurrentBag<NotQ100Data> data)
     {
         var whatToWrite = data.GetData(x => new { x.RowIdent, x.RowText },
