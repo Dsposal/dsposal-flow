@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Diagnostics.CodeAnalysis;
 using CommandLine;
 using CommandLine.Text;
 using Dsposal.Flow.Extensions;
@@ -80,6 +81,7 @@ async Task<int> Run(Options opts)
     return 0;
 }
 
+[ExcludeFromCodeCoverage] // composition root / CLI entry point
 internal abstract partial class Program
 {
     [LoggerMessage(LogLevel.Information, "Found {Count} Excel files to process")]
