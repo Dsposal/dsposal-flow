@@ -11,18 +11,15 @@ public partial class CsvFileService
 {
     private readonly string outputPath;
     private readonly ILogger<CsvFileService> logger;
+    private readonly ICsvWriter _writer;
 
     private string NormalizedOutput => Path.Combine(outputPath, "NormalizedTables");
 
-    public CsvFileService(string outputPath, ILogger<CsvFileService> logger)
+    public CsvFileService(string outputPath, ILogger<CsvFileService> logger, ICsvWriter? csvWriter = null)
     {
         this.outputPath = outputPath;
         this.logger = logger;
-
-        if (!Directory.Exists(NormalizedOutput))
-        {
-            Directory.CreateDirectory(NormalizedOutput);
-        }
+        _writer = csvWriter ?? new SystemCsvWriter();
     }
 
     public async Task WriteNormalizedFiles(ConcurrentBag<NotQ100Data> notQ100Data, ConcurrentBag<Q100Data> q100Data)
@@ -60,10 +57,7 @@ public partial class CsvFileService
         IEnumerable<T> data,
         CsvDataWriterOptions? options = null) where T : class
     {
-        await using CsvDataWriter cdw = options is not null
-            ? CsvDataWriter.Create(filePath, options)
-            : CsvDataWriter.Create(filePath);
-        await cdw.WriteAsync(data.AsDataReader());
+        await _writer.WriteAsync(filePath, data, options);
         LogCsvFileCreated(displayName, Path.GetDirectoryName(filePath) ?? "");
     }
 
@@ -419,9 +413,8 @@ public partial class CsvFileService
             var schema = contextColumns.Concat(rowTextColumns.Select(c => c.RowText ?? string.Empty));
             var reader = new PivotedDataReader(schema, pivotedRows);
 
-            await using var cdw = CsvDataWriter.Create(
-                Path.Combine(outputPath, $"{questionNumber}.csv"));
-            await cdw.WriteAsync(reader);
+            await _writer.WriteAsync(
+                Path.Combine(outputPath, $"{questionNumber}.csv"), reader);
 
             LogCsvFileCreated($"NotQ100 {questionNumber}", NormalizedOutput);
             return;
@@ -472,9 +465,8 @@ public partial class CsvFileService
             .Concat(colColumns.Where(c => !string.IsNullOrEmpty(c.ColText)).Select(c => c.ColText!));
         var colReader = new PivotedDataReader(colSchema, pivotedColRows);
 
-        await using var cdw2 = CsvDataWriter.Create(
-            Path.Combine(outputPath, $"{questionNumber}.csv"));
-        await cdw2.WriteAsync(colReader);
+        await _writer.WriteAsync(
+            Path.Combine(outputPath, $"{questionNumber}.csv"), colReader);
 
         LogCsvFileCreated($"NotQ100 {questionNumber}", NormalizedOutput);
     }
