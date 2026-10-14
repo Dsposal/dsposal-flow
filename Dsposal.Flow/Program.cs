@@ -18,27 +18,24 @@ return await results.MapResult(
     Run,
     errs =>
     {
-        HelpText? helpText = null;
-
         var errList = errs.ToList();
         var isVersion = errList.IsVersion();
         var isHelp = errList.IsHelp();
 
-        if (isVersion)
-            helpText = HelpText.AutoBuild(results);
-        else
-        {
-            helpText = HelpText.AutoBuild(results, h =>
+        HelpText? helpText = isVersion
+            ? HelpText.AutoBuild(results)
+            : HelpText.AutoBuild(results, h =>
             {
                 h.AddEnumValuesToHelpText = true;
-                h.AutoHelp = true;
-                h.AutoVersion = true;
-
+                h.AddNewLineBetweenHelpSections = true;
+                
                 return HelpText.DefaultParsingErrorsHandler(results, h);
             }, e => e);
-        }
-
+        
         AnsiConsole.Write(helpText);
+        AnsiConsole.WriteLine(
+            "Alternatively you can run this program with no input to get a interactive prompt to select valid Excel files to process.");
+
         return Task.FromResult(isVersion || isHelp ? 0 : -1);
     }
 );
