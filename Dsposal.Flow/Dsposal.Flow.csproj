@@ -30,6 +30,8 @@
     <ItemGroup>
         <InternalsVisibleTo Include="Dsposal.Flow.Tests" />
     </ItemGroup>
-    
 
+    <PropertyGroup Condition="Exists('Proprietary')">
+        <DefineConstants>$(DefineConstants);LOCAL_ADDON</DefineConstants>
+    </PropertyGroup>
 </Project>

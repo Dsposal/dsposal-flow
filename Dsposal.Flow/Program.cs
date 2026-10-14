@@ -9,6 +9,9 @@ using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 using Style = Dsposal.Flow.Models.Style;
+#if LOCAL_ADDON
+using Dsposal.Flow.Intergrations;
+#endif
 
 var parser = new Parser(with => { with.CaseInsensitiveEnumValues = true; });
 
@@ -69,12 +72,22 @@ async Task<int> Run(Options opts)
 
     var processor = new DataProcessor(loggerFactory.CreateLogger<DataProcessor>());
     await processor.ProcessFilesAsync(opts.ExcelFiles);
-
+    
     var csvProcessor = new CsvFileService(opts.OutputDir, loggerFactory.CreateLogger<CsvFileService>());
     await csvProcessor.WriteNormalizedFiles(processor.NotQ100Data, processor.Q100Data);
 
     await csvProcessor.WriteQ100(processor.Q100Data);
 
+#if LOCAL_ADDON
+    var eaService = new EaService(opts.OutputDir, loggerFactory.CreateLogger<EaService>());
+    await eaService.FetchPermitDataFromEA(processor.Q100Data);
+
+    var extraCsv = new ExtraCsvFiles(opts.OutputDir, loggerFactory.CreateLogger<ExtraCsvFiles>());
+    await extraCsv.WriteNormalizedFiles(processor.NotQ100Data, processor.Q100Data);
+
+    await eaService.WriteNormalizedFiles(processor.Q100Data);
+#endif
+    
     return 0;
 }
 
