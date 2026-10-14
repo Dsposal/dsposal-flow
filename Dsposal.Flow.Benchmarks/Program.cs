@@ -1,7 +1,7 @@
-﻿using System.Runtime.Serialization;
-using BenchmarkDotNet.Attributes;
+﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 using ClosedXML.Excel;
+using Dsposal.Flow.Models.WDF;
 using OfficeOpenXml;
 using Sylvan.Data;
 using Sylvan.Data.Excel;
@@ -135,18 +135,4 @@ public class Benchmarks
         
         return ret;
     }
-}
-
-public class NotQ100Data
-{
-    public string Authority { get; set; } = string.Empty;
-    public string Period { get; set; } = string.Empty;
-    public string QuestionNumber { get; set; } = string.Empty;
-    [DataMember(Name = "QuText")]
-    public string QuestionText { get; set; } = string.Empty;
-    public string? CollateText { get; set; }
-    public string? RowText { get; set; }
-    public string? ColText { get; set; }   
-    public string Data { get; set; } = string.Empty;   
-    public string? MaterialGroup { get; set; }
 }
