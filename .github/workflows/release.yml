@@ -1,0 +1,102 @@
+name: Release
+
+on:
+    push:
+        branches: [main]
+    workflow_dispatch:
+
+permissions:
+    contents: write
+
+jobs:
+    version:
+        runs-on: ubuntu-latest
+        outputs:
+            version: ${{ steps.v.outputs.version }}
+            tag: ${{ steps.v.outputs.tag }}
+        steps:
+            - uses: actions/checkout@v4
+            - id: v
+              run: |
+                  VERSION="$(date -u +'%Y.%m.%d')-$(git rev-parse --short HEAD)"
+                  echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+                  echo "tag=v$VERSION"     >> "$GITHUB_OUTPUT"
+
+    publish:
+        needs: version
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - { rid: win-x64, kind: zip }
+                    - { rid: linux-x64, kind: tar.gz }
+                    - { rid: osx-x64, kind: tar.gz }
+                    - { rid: osx-arm64, kind: tar.gz }
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/setup-dotnet@v4
+              with:
+                  dotnet-version: "10.0.x"
+                  cache: true
+                  cache-dependency-path: "**/*.csproj"
+
+            - name: Publish (${{ matrix.rid }})
+              run: >
+                  dotnet publish Dsposal.Flow
+                  -c Release
+                  -r ${{ matrix.rid }}
+                  --self-contained true
+                  -p:PublishSingleFile=true
+                  -p:IncludeNativeLibrariesForSelfExtract=true
+                  -p:EnableCompressionInSingleFile=true
+                  -p:Version=${{ needs.version.outputs.version }}
+                  -p:IncludeSourceRevisionInInformationalVersion=false
+                  -p:DebugType=none
+                  -o publish/${{ matrix.rid }}
+
+            - name: Package
+              run: |
+                  V="${{ needs.version.outputs.version }}"
+                  BASE="dsposal-flow-${{ matrix.rid }}-${V}"
+                  mkdir -p dist
+                  cd "publish/${{ matrix.rid }}"
+                  if [ "${{ matrix.kind }}" = "zip" ]; then
+                  7z a -r "../../dist/${BASE}.zip" .
+                  else
+                  tar -czf "../../dist/${BASE}.tar.gz" .
+                  fi
+            - uses: actions/upload-artifact@v4
+              with:
+                  name: dsposal-flow-${{ matrix.rid }}
+                  path: dist/*
+                  if-no-files-found: error
+
+    release:
+        needs: [version, publish]
+        if: ${{ !cancelled() && !failure() && inputs.skip_release != true }}
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/download-artifact@v4
+              with:
+                  path: dist
+                  merge-multiple: true
+
+            - name: Create GitHub Release
+              uses: softprops/action-gh-release@v2
+              with:
+                  name: ${{ needs.version.outputs.tag }}
+                  files: |
+                    dist/*
+                  tag_name: ${{ needs.version.outputs.tag }}
+                  body: |
+                      Dsposal.Flow ${{ needs.version.outputs.version }}.
+
+                      **Commit:** ${{ github.sha }}
+                      **Branch:** ${{ github.ref_name }}
+                  prerelease: true
+                  generate_release_notes: true
+                  target_commitish: ${{ github.sha }}
