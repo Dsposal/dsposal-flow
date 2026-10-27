@@ -163,7 +163,7 @@ Processed England 2023 and JanMar 2024.xlsx ━━━━━━━━━━━━
 - [CommandLineParser](https://github.com/commandlineparser/commandline) - CLI argument parsing
 - [Spectre.Console](https://spectreconsole.net/) - console UI, progress bars, tables
 - [Sylvan.Data.Excel](https://github.com/MarkPflug/Sylvan.Data.Excel) - high-performance Excel reader
-- [Sylvan.Data.Csv](https://github.com/MarkPflug/Sylvan.Data.Csv) - high-performance CSV writer
+- [Sylvan.Data.Csv](https://github.com/MarkPflug/Sylvan/blob/main/docs/Csv/Sylvan.Data.Csv.md) - high-performance CSV writer
 - [NUnit](https://nunit.org/) - unit testing
 - [BenchmarkDotNet](https://benchmarkdotnet.org/) - performance benchmarking
 
